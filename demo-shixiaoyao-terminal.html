@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>假如世界是个攻略游戏 · 失效药</title>
+<style>
+:root{--bg:#050608;--fg:#c7f5c7;--ac:#39ff14;--soft:#4a7a4a;--dim:#2a3a2a}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"SFMono-Regular",Consolas,"Courier New",monospace;line-height:1.8;-webkit-font-smoothing:antialiased}
+.cover-mask{position:fixed;inset:0;background:#050608;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;z-index:50;transition:opacity .6s;padding:20px}
+.cover-mask.hide{opacity:0;pointer-events:none}
+.cover-mask h1{font-size:clamp(22px,5vw,46px);font-weight:700;color:var(--ac);text-shadow:0 0 18px rgba(57,255,20,.5);letter-spacing:1px}
+.cover-mask .sub{color:var(--soft);margin-top:14px;font-size:14px}
+.cover-mask .enter{margin-top:34px;color:var(--ac);letter-spacing:3px;font-size:13px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#content{max-width:760px;margin:0 auto;padding:70px 22px 110px}
+.hero{width:100%;border-radius:10px;margin-bottom:44px;border:1px solid var(--dim)}
+.intro{color:var(--soft);margin:30px 0 50px;white-space:pre-line;border-left:2px solid var(--ac);padding-left:16px}
+section.block{margin:48px 0;padding:26px;border:1px solid var(--dim);border-radius:8px;background:rgba(57,255,20,.03);transition:opacity .7s,transform .7s}
+section.block.pre{opacity:0;transform:translateY(18px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{color:#fff;font-size:18px;font-weight:700;letter-spacing:1px}
+section.block .en{color:var(--ac);font-size:12px;margin-top:4px;letter-spacing:2px;text-transform:uppercase}
+section.block p{margin:12px 0;color:var(--fg)}
+section.block ul,section.block ol{margin:12px 0;padding-left:24px;color:var(--fg)}
+section.block li{margin:7px 0}
+section.block figure{margin:18px 0}
+section.block img{width:100%;border-radius:8px;border:1px solid var(--dim)}
+.links{margin:44px 0;display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.links a{display:inline-block;padding:10px 20px;border:1px solid var(--ac);color:var(--ac);border-radius:4px;text-decoration:none;font-size:13px;transition:.3s}
+.links a:hover{background:var(--ac);color:#000}
+.outro{margin:70px 0 24px;color:var(--soft);border-left:2px solid var(--ac);padding-left:16px}
+.by{text-align:center;color:var(--dim);font-size:13px}
+.by a{color:var(--dim);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="cover-mask" id="mask" >
+  <h1>假如世界是个攻略游戏 · 失效药</h1>
+  <div class="sub">SYSTEM_86 // 正在读取 npc 数值</div>
+  <div class="enter">▷ 点击任意处进入</div>
+</div>
+
+<div id="content">
+  
+  <div class="intro">点击任意处进入游戏。</div>
+  
+<section class="block">
+  <div class="zh">档案</div>
+  <div class="en">NPC Profile</div>
+  <ul><li>NAME 栩 / 状态 在线</li><li>攻略难度 ★★★☆</li></ul>
+</section>
+
+<section class="block">
+  <div class="zh">病恋档案</div>
+  <div class="en">File</div>
+  <p>死亡与爱同出，乌鸦衔来黄昏。</p>
+</section>
+
+<section class="block">
+  <div class="zh">须知</div>
+  <div class="en">Notice</div>
+  <ol><li>雷点提前告知</li><li>安全词立即暂停</li><li>赔偿以约定为准</li></ol>
+</section>
+
+<section class="block">
+  <div class="zh">亲密度</div>
+  <div class="en">Affection</div>
+  <p>选满 5 条话术解锁结局。</p>
+</section>
+  <div class="links"><a href="https://www.kdocs.cn/" target="_blank" rel="noopener">病恋原文 ↗</a></div>
+  <div class="outro">— 假如世界是个攻略游戏 · 失效药 —</div>
+  <div class="by">made by  yw-iris</div>
+</div>
+<script>
+document.getElementById('mask').addEventListener('click',function(){this.classList.add('hide');document.getElementById('content').scrollIntoView({behavior:'smooth'});});
+
+const blocks=document.querySelectorAll('section.block');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');e.target.classList.remove('pre');io.unobserve(e.target);}}),{threshold:.12});
+blocks.forEach(function(s){
+  var r=s.getBoundingClientRect();
+  if(r.top<window.innerHeight*0.92){s.classList.add('in');}
+  else{s.classList.add('pre');io.observe(s);}
+});
+</script>
+</body>
+</html>

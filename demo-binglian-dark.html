@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>贪恋你的吻也是罪过吗 · 克莱尔</title>
+<style>
+:root{--bg:#0a0a0c;--fg:#e9e2e2;--ac:#c0142b;--soft:#9a8e8e;--card:rgba(255,255,255,.04)}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.9;-webkit-font-smoothing:antialiased}
+.cover-mask{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#1a0a0d,#060608);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;z-index:50;transition:opacity .8s}
+.cover-mask.hide{opacity:0;pointer-events:none}
+.cover-mask h1{font-size:clamp(28px,6vw,58px);font-weight:700;letter-spacing:2px;color:#fff;text-shadow:0 0 30px rgba(192,20,43,.6)}
+.cover-mask .sub{color:var(--soft);margin-top:14px;font-style:italic;font-family:Georgia,serif}
+.cover-mask .enter{margin-top:38px;color:var(--ac);letter-spacing:4px;font-size:14px;animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#content{max-width:720px;margin:0 auto;padding:80px 24px 120px}
+.hero{width:100%;border-radius:14px;margin-bottom:48px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+section.block{margin:64px 0;padding:36px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;transition:opacity .9s,transform .9s}
+section.block.pre{opacity:0;transform:translateY(24px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{font-size:24px;font-weight:700;color:#fff}
+section.block .en{font-family:Georgia,serif;font-style:italic;color:var(--ac);letter-spacing:2px;font-size:14px;margin-top:4px;text-transform:uppercase}
+section.block p{margin:16px 0;color:#cfc7c7}
+section.block ul,section.block ol{margin:16px 0;padding-left:22px;color:#cfc7c7}
+section.block li{margin:8px 0}
+section.block figure{margin:20px 0}
+section.block img{width:100%;border-radius:12px}
+.intro{text-align:center;color:var(--soft);font-style:italic;font-family:Georgia,serif;margin:40px 0;white-space:pre-line}
+.links{margin:48px 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.links a{display:inline-block;padding:12px 22px;border:1px solid var(--ac);color:var(--ac);border-radius:30px;text-decoration:none;font-size:14px;transition:.3s}
+.links a:hover{background:var(--ac);color:#fff}
+.outro{text-align:center;margin:80px 0 30px;color:var(--soft);font-style:italic;font-family:Georgia,serif}
+.by{text-align:center;color:#555;font-size:13px;margin-bottom:60px}
+.by a{color:#777;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="cover-mask" id="mask" style="background:linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.85)),url('https://yw-iris.github.io/binglian/assets/bl_hero_dark.png') center/cover">
+  <h1>贪恋你的吻也是罪过吗 · 克莱尔</h1>
+  <div class="sub">向死而生，亦向爱而生</div>
+  <div class="enter">▷ 点击任意处进入</div>
+</div>
+
+<div id="content">
+  
+  <div class="intro">轻触任意处 · 进入</div>
+  
+<section class="block">
+  <div class="zh">关于</div>
+  <div class="en">About</div>
+  <p>我没有什么坏心思哦，只是想掠夺你全部的注意力而已。</p>
+<ul><li>18 · T</li><li>天蝎 · ENTP</li><li>常驻十二无</li></ul>
+</section>
+
+<section class="block">
+  <div class="zh">单前须知</div>
+  <div class="en">Notice</div>
+  <ol><li>退单规则以事前约定为准</li><li>安全词一经说出立即暂停</li><li>隐私要求双方共同遵守</li></ol>
+</section>
+  <div class="links"><a href="https://www.kdocs.cn/l/cpf1gQPTzjvX" target="_blank" rel="noopener">板评 ↗</a></div>
+  <div class="outro">— Claire · 克莱尔 —</div>
+  <div class="by">made by  yw-iris</div>
+</div>
+<script>
+document.getElementById('mask').addEventListener('click',function(){this.classList.add('hide');document.getElementById('content').scrollIntoView({behavior:'smooth'});});
+
+const blocks=document.querySelectorAll('section.block');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');e.target.classList.remove('pre');io.unobserve(e.target);}}),{threshold:.12});
+blocks.forEach(function(s){
+  var r=s.getBoundingClientRect();
+  if(r.top<window.innerHeight*0.92){s.classList.add('in');}
+  else{s.classList.add('pre');io.observe(s);}
+});
+</script>
+</body>
+</html>

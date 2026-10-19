@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>这一帧 只属于我们 · 清酒</title>
+<style>
+:root{--bg:#f4f2ee;--fg:#2b2b2b;--ac:#5a7a8a;--soft:#8a8478}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:2;-webkit-font-smoothing:antialiased}
+#content{max-width:680px;margin:0 auto;padding:100px 24px 120px}
+.cover{text-align:center;margin-bottom:70px}
+.cover h1{font-size:clamp(26px,5vw,44px);font-weight:300;letter-spacing:3px;color:#1f1f1f}
+.cover .sub{color:var(--soft);margin-top:16px;font-style:italic;font-family:Georgia,serif;font-size:15px}
+.cover .sig{color:var(--ac);margin-top:18px;letter-spacing:2px;font-size:13px}
+.hero{width:100%;border-radius:16px;margin-bottom:50px;box-shadow:0 16px 40px rgba(0,0,0,.12)}
+.intro{text-align:center;color:var(--soft);font-style:italic;font-family:Georgia,serif;margin:30px 0 60px;white-space:pre-line;letter-spacing:1px}
+section.block{margin:56px 0;padding:0 8px;transition:opacity .9s,transform .9s}
+section.block.pre{opacity:0;transform:translateY(20px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{font-size:22px;font-weight:400;color:#1f1f1f;letter-spacing:2px}
+section.block .en{font-family:Georgia,serif;font-style:italic;color:var(--ac);font-size:13px;margin-top:4px;letter-spacing:2px}
+section.block p{margin:14px 0;color:#444}
+section.block ul,section.block ol{margin:14px 0;padding-left:22px;color:#444}
+section.block li{margin:8px 0}
+section.block figure{margin:24px 0}
+section.block img{width:100%;border-radius:12px}
+.links{margin:50px 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.links a{display:inline-block;padding:11px 22px;border:1px solid var(--ac);color:var(--ac);border-radius:30px;text-decoration:none;font-size:14px;transition:.3s}
+.links a:hover{background:var(--ac);color:#fff}
+.outro{text-align:center;margin:80px 0 24px;color:var(--soft);font-style:italic;font-family:Georgia,serif}
+.by{text-align:center;color:#aaa;font-size:13px}
+.by a{color:#aaa;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="cover"><h1>这一帧 只属于我们 · 清酒</h1><div class="sub">Love is a nail in the skull</div></div>
+<div id="content">
+  
+  <div class="intro">轻点任意处 · 进入</div>
+  
+<section class="block">
+  <div class="zh">关于</div>
+  <div class="en">Self Introduction</div>
+  <ul><li>Name 清酒 / Age 26</li><li>Zodiac 白羊 / Timbre le-T</li><li>Label 八无好女人</li></ul>
+</section>
+
+<section class="block">
+  <div class="zh">风格一览</div>
+  <div class="en">Style</div>
+  <p>温病 / 微擦 / 逻辑 / 诡辩</p>
+</section>
+
+<section class="block">
+  <div class="zh">常驻装扮</div>
+  <div class="en">Outfit</div>
+  <p>白枭耳 · 虚 · 阿努比斯</p>
+</section>
+
+<section class="block">
+  <div class="zh">了解更多</div>
+  <div class="en">More</div>
+  <ul><li><a href="https://www.kdocs.cn/" target="_blank" rel="noopener">板评 ↗</a></li><li><a href="https://www.kdocs.cn/" target="_blank" rel="noopener">话术 ↗</a></li></ul>
+</section>
+  
+  <div class="outro">— 这一帧 只属于我们 · 清酒 —</div>
+  <div class="by">made by  yw-iris</div>
+</div>
+<script>
+
+const blocks=document.querySelectorAll('section.block');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');e.target.classList.remove('pre');io.unobserve(e.target);}}),{threshold:.12});
+blocks.forEach(function(s){
+  var r=s.getBoundingClientRect();
+  if(r.top<window.innerHeight*0.92){s.classList.add('in');}
+  else{s.classList.add('pre');io.observe(s);}
+});
+</script>
+</body>
+</html>

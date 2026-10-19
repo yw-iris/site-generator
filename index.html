@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人设站生成器 · 输入文档生成单页网站</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{
+    --bg:#0e0e12; --panel:#16161d; --panel2:#1d1d27; --line:#2a2a36;
+    --text:#e6e6ee; --muted:#8a8a99; --accent:#7c5cff; --accent2:#b3122b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.5px}
+  header h1 small{color:var(--muted);font-weight:400;margin-left:8px}
+  .spacer{flex:1}
+  select,button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:hover{border-color:var(--accent)}
+  main{display:flex;height:calc(100% - 53px)}
+  .pane{width:50%;display:flex;flex-direction:column;min-width:0}
+  .pane.left{border-right:1px solid var(--line)}
+  .pane .bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+  textarea{flex:1;width:100%;border:0;background:#0b0b0f;color:#d6d6e2;padding:14px;font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;line-height:1.7;resize:none;outline:none}
+  .preview-wrap{flex:1;background:#000}
+  iframe{width:100%;height:100%;border:0;background:#fff}
+  .hint{font-size:11px;color:var(--muted);padding:6px 12px;background:var(--panel);border-top:1px solid var(--line)}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:99}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>人设站生成器 <small>输入文档 → 生成单页网站</small></h1>
+  <div class="spacer"></div>
+  <select id="themeSel">
+    <option value="dark">暗黑病恋 · dark</option>
+    <option value="cold">清冷文艺 · cold</option>
+    <option value="terminal">终端霓虹 · terminal</option>
+  </select>
+  <select id="sampleSel">
+    <option value="">加载示例…</option>
+    <option value="binglian">病恋 · 克莱尔</option>
+    <option value="yuan">渊 · 江渊</option>
+    <option value="coco">Coco 虚恋</option>
+    <option value="qingjiu">清酒</option>
+    <option value="shixiaoyao">失效药 · 栩</option>
+  </select>
+  <button id="importBtn">导入 Word</button>
+  <button id="exportBtn" class="primary">导出 HTML</button>
+</header>
+<main>
+  <section class="pane left">
+    <div class="bar">文档编辑区（支持约定式 Markdown，或用「导入 Word」）</div>
+    <textarea id="editor" spellcheck="false"></textarea>
+    <div class="hint">格式：<b># 封面标题</b> → <b>## 中文 · English</b> 区块 → <b>- 列表</b> / <b>1. 条目</b> → <b>![图](url)</b> → <b>[文字 ↗](链接)</b> → <b>made by xxx</b>。Word 请用「标题1/标题2」样式表示封面与区块。</div>
+  </section>
+  <section class="pane">
+    <div class="bar">实时预览（这就是导出后的样子）</div>
+    <div class="preview-wrap"><iframe id="preview"></iframe></div>
+  </section>
+</main>
+<input type="file" id="fileInput" accept=".docx" style="display:none">
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 示例内容 ============ */
+const SAMPLES = {
+binglian:`# 贪恋你的吻也是罪过吗 · 克莱尔
+副标题：向死而生，亦向爱而生
+署名：Claire · 克莱尔
+封面图：https://yw-iris.github.io/binglian/assets/bl_hero_dark.png
+
+> 轻触任意处 · 进入
+
+## 关于 · About
+我没有什么坏心思哦，只是想掠夺你全部的注意力而已。
+- 18 · T
+- 天蝎 · ENTP
+- 常驻十二无
+
+## 单前须知 · Notice
+1. 退单规则以事前约定为准
+2. 安全词一经说出立即暂停
+3. 隐私要求双方共同遵守
+
+了解更多：[板评 ↗](https://www.kdocs.cn/l/cpf1gQPTzjvX)
+made by yw-iris`,
+yuan:`# 如果你需要我，我就在 · 渊
+副标题：江渊 · 池渊
+引导：向 下
+
+> 一个可以听你说话的地方。
+
+## 倾听者 · The Listener
+在这里，a place to be heard。你说，我听，仅此而已。
+
+## 关于我 · About
+- 人格：极品 · 中性音
+- 可服务：倾诉 / 陪聊 / 情绪收纳
+
+## 售价 · Pricing
+- 按次：30
+- 按时：88/h
+- 深夜档：+20
+
+## 须知 · Notes
+1. 不评判，不劝分
+2. 秘密止于此处
+
+了解更多：[话术板评 ↗](https://www.kdocs.cn/l/clTtART18F5K)
+made by yw-iris`,
+coco:`# Coco の 虚恋 · 时之轮
+副标题：ΚΟΚΩ · ΚΑΛΟΣ ΚΑΓΑΘΟΣ
+封面图：https://yw-iris.github.io/coco-xulian/assets/starcross.jpg
+
+> 或许你愿意和我讲述心事。
+
+## 价目 · Price
+- SKY 虚 · 按小时：48/h
+- 按半小时：30/半
+
+## 关于 · Profile
+- NAME Coco / AGE 21
+- MBTI ENFP / IP 上海
+- 副风格：偏执 · 多疑 · 虚
+
+## 项目 · Service
+- Α 光遇陪跑
+- Β 讲述心事
+- Γ 角色扮演
+
+## 须知 · Notice
+1. 雷点提前告知
+2. 退单按规则
+
+了解更多：[完整文档 ↗](https://docs.qq.com/doc/DYWdMaHh4bURCT2pj)
+made by yw-iris`,
+qingjiu:`# 这一帧 只属于我们 · 清酒
+副标题：Love is a nail in the skull
+
+> 轻点任意处 · 进入
+
+## 关于 · Self Introduction
+- Name 清酒 / Age 26
+- Zodiac 白羊 / Timbre le-T
+- Label 八无好女人
+
+## 风格一览 · Style
+温病 / 微擦 / 逻辑 / 诡辩
+
+## 常驻装扮 · Outfit
+白枭耳 · 虚 · 阿努比斯
+
+## 了解更多 · More
+- [板评 ↗](https://www.kdocs.cn/)
+- [话术 ↗](https://www.kdocs.cn/)
+
+made by yw-iris`,
+shixiaoyao:`# 假如世界是个攻略游戏 · 失效药
+副标题：SYSTEM_86 // 正在读取 npc 数值
+
+> 点击任意处进入游戏。
+
+## 档案 · NPC Profile
+- NAME 栩 / 状态 在线
+- 攻略难度 ★★★☆
+
+## 病恋档案 · File
+死亡与爱同出，乌鸦衔来黄昏。
+
+## 须知 · Notice
+1. 雷点提前告知
+2. 安全词立即暂停
+3. 赔偿以约定为准
+
+## 亲密度 · Affection
+选满 5 条话术解锁结局。
+
+了解更多：[病恋原文 ↗](https://www.kdocs.cn/)
+made by yw-iris`
+};
+
+/* ============ 解析：约定式 Markdown → 内容模型 ============ */
+function splitTitle(t){
+  for(const s of ['·','｜','|','//']){
+    if(t.includes(s)){
+      const i=t.lastIndexOf(s);
+      return {zh:t.slice(0,i).trim(), en:t.slice(i+s.length).trim()};
+    }
+  }
+  return {zh:t, en:''};
+}
+function parseMarkdown(text){
+  const lines = text.replace(/\r\n/g,'\n').split('\n');
+  const m = {cover:{title:'',subtitle:'',signature:'',heroImage:''}, intro:'', sections:[], links:[], by:''};
+  let cur=null, inCover=true;
+  for(const raw of lines){
+    const line = raw;
+    if(/^#\s+/.test(line)){ m.cover.title=line.replace(/^#\s+/,'').trim(); inCover=true; continue; }
+    if(/^##\s+/.test(line)){
+      inCover=false;
+      const {zh,en}=splitTitle(line.replace(/^##\s+/,'').trim());
+      cur={zh,en,blocks:[]}; m.sections.push(cur); continue;
+    }
+    if(inCover){
+      if(/^副标题[:：]/.test(line)){ m.cover.subtitle=line.replace(/^副标题[:：]/,'').trim(); continue; }
+      if(/^署名[:：]/.test(line)){ m.cover.signature=line.replace(/^署名[:：]/,'').trim(); continue; }
+      if(/^封面图[:：]/.test(line)){ m.cover.heroImage=line.replace(/^封面图[:：]/,'').trim(); continue; }
+      if(/^>\s?/.test(line)){ m.intro += line.replace(/^>\s?/,'').trim()+'\n'; continue; }
+      if(line.trim()) m.intro += line.trim()+'\n';
+      continue;
+    }
+    if(!cur) continue;
+    if(/^[-*]\s+/.test(line)){
+      let l=cur.blocks.find(b=>b.type==='list'&&!b.ordered);
+      if(!l){ l={type:'list',ordered:false,items:[]}; cur.blocks.push(l); }
+      l.items.push(line.replace(/^[-*]\s+/,'').trim()); continue;
+    }
+    if(/^\d+\.\s+/.test(line)){
+      let l=cur.blocks.find(b=>b.type==='list'&&b.ordered);
+      if(!l){ l={type:'list',ordered:true,items:[]}; cur.blocks.push(l); }
+      l.items.push(line.replace(/^\d+\.\s+/,'').trim()); continue;
+    }
+    if(/^!\[.*\]\(.*\)/.test(line)){
+      const mm=line.match(/^!\[(.*)\]\((.*)\)/);
+      cur.blocks.push({type:'image',alt:mm[1],src:mm[2]}); continue;
+    }
+    if(/^made by/i.test(line)){ m.by=line.trim(); continue; }
+    const linkAll=[...line.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g)];
+    if(linkAll.length){
+      const stripped=line.replace(/\[[^\]]*\]\(https?:\/\/[^)]*\)/g,'').replace(/[：:\s>]/g,'');
+      if(stripped.length<=8){ linkAll.forEach(mm=>m.links.push({text:mm[1],href:mm[2]})); continue; }
+    }
+    if(line.trim()==='') continue;
+    cur.blocks.push({type:'p',text:line.trim()});
+  }
+  m.intro=m.intro.trim();
+  return m;
+}
+
+/* ============ 富文本 / Word → Markdown ============ */
+function inlineToMd(node){
+  let s='';
+  node.childNodes.forEach(n=>{
+    if(n.nodeType===3) s+=n.textContent;
+    else if(n.nodeName==='A') s+=`[${n.textContent}](${n.getAttribute('href')||''})`;
+    else if(n.nodeName==='IMG') s+=`![${(n.getAttribute('alt')||'')}](${n.getAttribute('src')||''})`;
+    else s+=n.textContent;
+  });
+  return s;
+}
+function htmlToMarkdown(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  let out='';
+  doc.body.childNodes.forEach(node=>{
+    const nm=node.nodeName;
+    if(nm==='H1') out+='# '+node.textContent+'\n';
+    else if(nm==='H2') out+='## '+node.textContent+'\n';
+    else if(nm==='P') out+=inlineToMd(node)+'\n';
+    else if(nm==='UL') out+=[...node.querySelectorAll('li')].map(li=>'- '+inlineToMd(li)).join('\n')+'\n';
+    else if(nm==='OL') out+=[...node.querySelectorAll('li')].map((li,i)=>(i+1)+'. '+inlineToMd(li)).join('\n')+'\n';
+    else if(nm==='IMG') out+=`![${(node.getAttribute('alt')||'')}](${node.getAttribute('src')||''})\n`;
+  });
+  return out.trim();
+}
+
+/* ============ 渲染：内容模型 + 主题 → 完整 HTML ============ */
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function inlineRich(s){
+  s=escapeHtml(s);
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+function renderBlocks(blocks){
+  return blocks.map(b=>{
+    if(b.type==='p') return `<p>${inlineRich(b.text)}</p>`;
+    if(b.type==='image') return `<figure><img src="${escapeHtml(b.src)}" alt="${escapeHtml(b.alt)}"></figure>`;
+    if(b.type==='list'){
+      const tag=b.ordered?'ol':'ul';
+      return `<${tag}>`+b.items.map(i=>`<li>${inlineRich(i)}</li>`).join('')+`</${tag}>`;
+    }
+    return '';
+  }).join('\n');
+}
+function renderLinks(links){
+  if(!links.length) return '';
+  return `<div class="links">`+links.map(l=>`<a href="${escapeHtml(l.href)}" target="_blank" rel="noopener">${escapeHtml(l.text)}</a>`).join('')+`</div>`;
+}
+
+const THEMES = {
+dark:`
+:root{--bg:#0a0a0c;--fg:#e9e2e2;--ac:#c0142b;--soft:#9a8e8e;--card:rgba(255,255,255,.04)}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.9;-webkit-font-smoothing:antialiased}
+.cover-mask{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#1a0a0d,#060608);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;z-index:50;transition:opacity .8s}
+.cover-mask.hide{opacity:0;pointer-events:none}
+.cover-mask h1{font-size:clamp(28px,6vw,58px);font-weight:700;letter-spacing:2px;color:#fff;text-shadow:0 0 30px rgba(192,20,43,.6)}
+.cover-mask .sub{color:var(--soft);margin-top:14px;font-style:italic;font-family:Georgia,serif}
+.cover-mask .enter{margin-top:38px;color:var(--ac);letter-spacing:4px;font-size:14px;animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#content{max-width:720px;margin:0 auto;padding:80px 24px 120px}
+.hero{width:100%;border-radius:14px;margin-bottom:48px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+section.block{margin:64px 0;padding:36px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;transition:opacity .9s,transform .9s}
+section.block.pre{opacity:0;transform:translateY(24px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{font-size:24px;font-weight:700;color:#fff}
+section.block .en{font-family:Georgia,serif;font-style:italic;color:var(--ac);letter-spacing:2px;font-size:14px;margin-top:4px;text-transform:uppercase}
+section.block p{margin:16px 0;color:#cfc7c7}
+section.block ul,section.block ol{margin:16px 0;padding-left:22px;color:#cfc7c7}
+section.block li{margin:8px 0}
+section.block figure{margin:20px 0}
+section.block img{width:100%;border-radius:12px}
+.intro{text-align:center;color:var(--soft);font-style:italic;font-family:Georgia,serif;margin:40px 0;white-space:pre-line}
+.links{margin:48px 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.links a{display:inline-block;padding:12px 22px;border:1px solid var(--ac);color:var(--ac);border-radius:30px;text-decoration:none;font-size:14px;transition:.3s}
+.links a:hover{background:var(--ac);color:#fff}
+.outro{text-align:center;margin:80px 0 30px;color:var(--soft);font-style:italic;font-family:Georgia,serif}
+.by{text-align:center;color:#555;font-size:13px;margin-bottom:60px}
+.by a{color:#777;text-decoration:none}
+`,
+cold:`
+:root{--bg:#f4f2ee;--fg:#2b2b2b;--ac:#5a7a8a;--soft:#8a8478}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:2;-webkit-font-smoothing:antialiased}
+#content{max-width:680px;margin:0 auto;padding:100px 24px 120px}
+.cover{text-align:center;margin-bottom:70px}
+.cover h1{font-size:clamp(26px,5vw,44px);font-weight:300;letter-spacing:3px;color:#1f1f1f}
+.cover .sub{color:var(--soft);margin-top:16px;font-style:italic;font-family:Georgia,serif;font-size:15px}
+.cover .sig{color:var(--ac);margin-top:18px;letter-spacing:2px;font-size:13px}
+.hero{width:100%;border-radius:16px;margin-bottom:50px;box-shadow:0 16px 40px rgba(0,0,0,.12)}
+.intro{text-align:center;color:var(--soft);font-style:italic;font-family:Georgia,serif;margin:30px 0 60px;white-space:pre-line;letter-spacing:1px}
+section.block{margin:56px 0;padding:0 8px;transition:opacity .9s,transform .9s}
+section.block.pre{opacity:0;transform:translateY(20px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{font-size:22px;font-weight:400;color:#1f1f1f;letter-spacing:2px}
+section.block .en{font-family:Georgia,serif;font-style:italic;color:var(--ac);font-size:13px;margin-top:4px;letter-spacing:2px}
+section.block p{margin:14px 0;color:#444}
+section.block ul,section.block ol{margin:14px 0;padding-left:22px;color:#444}
+section.block li{margin:8px 0}
+section.block figure{margin:24px 0}
+section.block img{width:100%;border-radius:12px}
+.links{margin:50px 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.links a{display:inline-block;padding:11px 22px;border:1px solid var(--ac);color:var(--ac);border-radius:30px;text-decoration:none;font-size:14px;transition:.3s}
+.links a:hover{background:var(--ac);color:#fff}
+.outro{text-align:center;margin:80px 0 24px;color:var(--soft);font-style:italic;font-family:Georgia,serif}
+.by{text-align:center;color:#aaa;font-size:13px}
+.by a{color:#aaa;text-decoration:none}
+`,
+terminal:`
+:root{--bg:#050608;--fg:#c7f5c7;--ac:#39ff14;--soft:#4a7a4a;--dim:#2a3a2a}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:"SFMono-Regular",Consolas,"Courier New",monospace;line-height:1.8;-webkit-font-smoothing:antialiased}
+.cover-mask{position:fixed;inset:0;background:#050608;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;z-index:50;transition:opacity .6s;padding:20px}
+.cover-mask.hide{opacity:0;pointer-events:none}
+.cover-mask h1{font-size:clamp(22px,5vw,46px);font-weight:700;color:var(--ac);text-shadow:0 0 18px rgba(57,255,20,.5);letter-spacing:1px}
+.cover-mask .sub{color:var(--soft);margin-top:14px;font-size:14px}
+.cover-mask .enter{margin-top:34px;color:var(--ac);letter-spacing:3px;font-size:13px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#content{max-width:760px;margin:0 auto;padding:70px 22px 110px}
+.hero{width:100%;border-radius:10px;margin-bottom:44px;border:1px solid var(--dim)}
+.intro{color:var(--soft);margin:30px 0 50px;white-space:pre-line;border-left:2px solid var(--ac);padding-left:16px}
+section.block{margin:48px 0;padding:26px;border:1px solid var(--dim);border-radius:8px;background:rgba(57,255,20,.03);transition:opacity .7s,transform .7s}
+section.block.pre{opacity:0;transform:translateY(18px)}
+section.block.in{opacity:1;transform:none}
+section.block .zh{color:#fff;font-size:18px;font-weight:700;letter-spacing:1px}
+section.block .en{color:var(--ac);font-size:12px;margin-top:4px;letter-spacing:2px;text-transform:uppercase}
+section.block p{margin:12px 0;color:var(--fg)}
+section.block ul,section.block ol{margin:12px 0;padding-left:24px;color:var(--fg)}
+section.block li{margin:7px 0}
+section.block figure{margin:18px 0}
+section.block img{width:100%;border-radius:8px;border:1px solid var(--dim)}
+.links{margin:44px 0;display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.links a{display:inline-block;padding:10px 20px;border:1px solid var(--ac);color:var(--ac);border-radius:4px;text-decoration:none;font-size:13px;transition:.3s}
+.links a:hover{background:var(--ac);color:#000}
+.outro{margin:70px 0 24px;color:var(--soft);border-left:2px solid var(--ac);padding-left:16px}
+.by{text-align:center;color:var(--dim);font-size:13px}
+.by a{color:var(--dim);text-decoration:none}
+`
+};
+
+function renderSite(model, themeKey){
+  const css = THEMES[themeKey] || THEMES.dark;
+  const hasMask = (themeKey==='dark'||themeKey==='terminal');
+  const c = model.cover;
+  const maskBg = (hasMask && c.heroImage) ? `style="background:linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.85)),url('${escapeHtml(c.heroImage)}') center/cover"` : '';
+  const mask = hasMask ? `
+<div class="cover-mask" id="mask" ${maskBg}>
+  <h1>${escapeHtml(c.title)}</h1>
+  ${c.subtitle?`<div class="sub">${escapeHtml(c.subtitle)}</div>`:''}
+  <div class="enter">▷ 点击任意处进入</div>
+</div>` : '';
+  const hero = (!hasMask && c.heroImage) ? `<img class="hero" src="${escapeHtml(c.heroImage)}" alt="">` : '';
+  const coverTop = (!hasMask) ? `<div class="cover"><h1>${escapeHtml(c.title)}</h1>${c.subtitle?`<div class="sub">${escapeHtml(c.subtitle)}</div>`:''}${c.signature?`<div class="sig">${escapeHtml(c.signature)}</div>`:''}</div>` : '';
+  const sections = model.sections.map(s=>`
+<section class="block">
+  <div class="zh">${escapeHtml(s.zh)}</div>
+  ${s.en?`<div class="en">${escapeHtml(s.en)}</div>`:''}
+  ${renderBlocks(s.blocks)}
+</section>`).join('\n');
+  const byHtml = model.by ? `<div class="by">${inlineRich(model.by.replace(/made by/i,'made by '))}</div>` : '';
+  const revealJs = `
+const blocks=document.querySelectorAll('section.block');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');e.target.classList.remove('pre');io.unobserve(e.target);}}),{threshold:.12});
+blocks.forEach(function(s){
+  var r=s.getBoundingClientRect();
+  if(r.top<window.innerHeight*0.92){s.classList.add('in');}
+  else{s.classList.add('pre');io.observe(s);}
+});`;
+  const script = hasMask ? `<script>
+document.getElementById('mask').addEventListener('click',function(){this.classList.add('hide');document.getElementById('content').scrollIntoView({behavior:'smooth'});});
+${revealJs}
+<\/script>` : `<script>
+${revealJs}
+<\/script>`;
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(c.title||'人设站')}</title>
+<style>${css}</style>
+</head>
+<body>
+${mask}
+${coverTop}
+<div id="content">
+  ${hero}
+  ${model.intro?`<div class="intro">${escapeHtml(model.intro)}</div>`:''}
+  ${sections}
+  ${renderLinks(model.links)}
+  <div class="outro">— ${escapeHtml(c.signature||c.title)} —</div>
+  ${byHtml}
+</div>
+${script}
+</body>
+</html>`;
+}
+
+/* ============ UI 绑定 ============ */
+const editor=document.getElementById('editor');
+const preview=document.getElementById('preview');
+const themeSel=document.getElementById('themeSel');
+const sampleSel=document.getElementById('sampleSel');
+const toast=document.getElementById('toast');
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200);}
+function render(){
+  const html=renderSite(parseMarkdown(editor.value), themeSel.value);
+  preview.srcdoc=html;
+  preview.dataset.html=html;
+}
+editor.addEventListener('input', render);
+themeSel.addEventListener('change', render);
+sampleSel.addEventListener('change', ()=>{ if(sampleSel.value){ editor.value=SAMPLES[sampleSel.value]; render(); } });
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const html=preview.dataset.html||renderSite(parseMarkdown(editor.value), themeSel.value);
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='site.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('已导出 site.html（可直接放 GitHub Pages）');
+});
+document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', async e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  if(typeof mammoth==='undefined'){ showToast('Mammoth 未加载，请检查网络后重试'); return; }
+  try{
+    const ab=await file.arrayBuffer();
+    const r=await mammoth.convertToHtml({arrayBuffer:ab});
+    editor.value=htmlToMarkdown(r.value);
+    render();
+    showToast('Word 导入成功，已转为文档结构');
+  }catch(err){ showToast('解析失败：'+err.message); }
+});
+
+/* 初始示例 */
+editor.value=SAMPLES.binglian;
+render();
+</script>
+</body>
+</html>
